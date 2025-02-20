@@ -128,3 +128,14 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Ignore environment files
+.env
+# Ignore node dependencies
+node_modules/
+# Ignore build files
+client/build/
+server/node_modules/
+# Ignore editor config files
+.vscode/
+.DS_Store
