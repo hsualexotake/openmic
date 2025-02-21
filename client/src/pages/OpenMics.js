@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 const OpenMics = () => {
   const [mics, setMics] = useState([]);
-  const [token, setToken] = useState(localStorage.getItem("token"));
+  const token = localStorage.getItem("token"); // No need for useState
   const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
 
@@ -56,20 +56,24 @@ const OpenMics = () => {
 
       {/* Display Open Mics */}
       <ul>
-        {mics.map((mic) => (
-          <li key={mic.id} className="border p-4 mb-2">
-            <h2 className="text-xl font-semibold">{mic.name}</h2>
-            <p>
-              📍 {mic.location} | 🏙 {mic.borough}
-            </p>
-            <p>
-              💰 {mic.cost === 0 ? "Free" : `$${mic.cost}`} | 🕒 {mic.time}
-            </p>
-            <p>
-              📅 {mic.date} | 🎤 {mic.sign_up_method}
-            </p>
-          </li>
-        ))}
+        {mics.length > 0 ? (
+          mics.map((mic) => (
+            <li key={mic.id} className="border p-4 mb-2 w-full max-w-lg">
+              <h2 className="text-xl font-semibold">{mic.name}</h2>
+              <p>
+                📍 {mic.location} | 🏙 {mic.borough}
+              </p>
+              <p>
+                💰 {mic.cost === 0 ? "Free" : `$${mic.cost}`} | 🕒 {mic.time}
+              </p>
+              <p>
+                📅 {mic.date} | 🎤 {mic.sign_up_method}
+              </p>
+            </li>
+          ))
+        ) : (
+          <p>No open mics available.</p>
+        )}
       </ul>
     </div>
   );

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import AddMicForm from "../components/AddMicForm";
 
 const AddMic = () => {
-  const [token, setToken] = useState(localStorage.getItem("token"));
+  const token = localStorage.getItem("token"); // No need for useState
   const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
 
@@ -13,18 +13,18 @@ const AddMic = () => {
       return;
     }
 
-    const decodeToken = () => {
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1])); // Decode JWT
-        setIsAdmin(payload.role === "admin"); // Ensure user is an admin
-      } catch (error) {
-        console.error("Invalid token", error);
-        localStorage.removeItem("token"); // Remove invalid token
-        navigate("/login"); // Redirect to login
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1])); // Decode JWT
+      if (payload.role === "admin") {
+        setIsAdmin(true);
+      } else {
+        navigate("/"); // Redirect non-admin users
       }
-    };
-
-    decodeToken();
+    } catch (error) {
+      console.error("Invalid token", error);
+      localStorage.removeItem("token"); // Remove invalid token
+      navigate("/login"); // Redirect to login
+    }
   }, [token, navigate]);
 
   return (
