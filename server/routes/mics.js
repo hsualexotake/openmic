@@ -22,23 +22,43 @@ router.get("/", async (req, res) => {
 
 // Private Route: Add a New Open Mic (Admins Only)
 router.post("/", verifyToken, verifyAdmin, async (req, res) => {
-  const { name, location, borough, cost, time, date, sign_up_method } =
-    req.body;
+  const {
+    name,
+    location,
+    borough,
+    cost,
+    time,
+    date,
+    sign_up_method,
+    latitude,
+    longitude,
+  } = req.body;
 
-  // 🔴 Validate input to prevent SQL Injection
-  if (![name, location, borough, sign_up_method].every(validateInput)) {
-    return res.status(400).json({ error: "Invalid input detected." });
+  if (!latitude || !longitude) {
+    return res
+      .status(400)
+      .json({ error: "Latitude and Longitude are required." });
   }
 
   try {
     await pool.query(
-      "INSERT INTO open_mics (name, location, borough, cost, time, date, sign_up_method) VALUES ($1, $2, $3, $4, $5, $6, $7)",
-      [name, location, borough, cost, time, date, sign_up_method]
+      "INSERT INTO open_mics (name, location, borough, cost, time, date, sign_up_method, latitude, longitude) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+      [
+        name,
+        location,
+        borough,
+        cost,
+        time,
+        date,
+        sign_up_method,
+        latitude,
+        longitude,
+      ]
     );
     res.status(201).json({ message: "Open mic added successfully!" });
   } catch (error) {
     console.error("Database error:", error);
-    res.status(500).json({ error: "Database error." });
+    res.status(500).json({ error: "Database error" });
   }
 });
 
