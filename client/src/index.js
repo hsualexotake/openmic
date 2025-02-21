@@ -1,5 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import "leaflet/dist/leaflet.css";
 
 import "./index.css"; // ✅ Ensure this is correctly importing Tailwind styles
 import App from "./App";

@@ -1,6 +1,9 @@
 import React, { useState } from "react";
+import axios from "axios";
 
-const AddMicForm = ({ onMicAdded }) => {
+const MAPBOX_ACCESS_TOKEN = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
+
+const AddMicForm = ({ onMicAdded = () => {} }) => {
   const [formData, setFormData] = useState({
     name: "",
     location: "",
@@ -9,50 +12,85 @@ const AddMicForm = ({ onMicAdded }) => {
     time: "",
     date: "",
     sign_up_method: "",
+    latitude: "",
+    longitude: "",
   });
 
+  const [suggestions, setSuggestions] = useState([]);
+
+  // Handle input changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (e.target.name === "location") {
+      fetchAddressSuggestions(e.target.value);
+    }
   };
 
+  // Fetch address suggestions from Mapbox
+  const fetchAddressSuggestions = async (query) => {
+    if (!query.trim()) {
+      setSuggestions([]);
+      return;
+    }
+
+    try {
+      const API_URL = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+        query
+      )}.json?access_token=${MAPBOX_ACCESS_TOKEN}&autocomplete=true&limit=5&country=US`;
+
+      const response = await axios.get(API_URL);
+      setSuggestions(response.data.features);
+    } catch (error) {
+      console.error("Error fetching address suggestions:", error);
+      setSuggestions([]);
+    }
+  };
+
+  // Handle suggestion selection
+  const handleSuggestionClick = (suggestion) => {
+    setFormData({
+      ...formData,
+      location: suggestion.place_name,
+      latitude: suggestion.center[1],
+      longitude: suggestion.center[0],
+    });
+    setSuggestions([]);
+  };
+
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token"); // Retrieve token from local storage
+
     if (!token) {
       alert("You must be logged in to add an open mic.");
       return;
     }
 
     try {
-      const response = await fetch("http://localhost:5001/api/mics", {
+      const micData = { ...formData };
+
+      const res = await fetch("http://localhost:5001/api/mics", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`, // Include token in request
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(micData),
       });
 
-      const data = await response.json();
-      if (response.ok) {
+      if (res.ok) {
         alert("Open Mic Added!");
-        onMicAdded(data); // Notify parent
-        setFormData({
-          name: "",
-          location: "",
-          borough: "",
-          cost: "",
-          time: "",
-          date: "",
-          sign_up_method: "",
-        });
+        const newMic = await res.json();
+        onMicAdded(newMic);
       } else {
-        alert("Error adding Open Mic: " + data.error);
+        const errorData = await res.json();
+        alert("Error adding Open Mic: " + (errorData.error || "Unknown error"));
       }
     } catch (error) {
-      alert("Error adding Open Mic. Please try again.");
-      console.error("Add mic error:", error);
+      console.error("Error submitting Open Mic:", error);
+      alert("Error submitting Open Mic.");
     }
   };
 
@@ -69,15 +107,32 @@ const AddMicForm = ({ onMicAdded }) => {
           className="w-full p-2 border border-gray-300 rounded"
           required
         />
+
         <input
           type="text"
           name="location"
           value={formData.location}
           onChange={handleChange}
-          placeholder="Location"
+          placeholder="Full Address"
           className="w-full p-2 border border-gray-300 rounded"
           required
         />
+
+        {/* Display Address Suggestions */}
+        {suggestions.length > 0 && (
+          <ul className="bg-white border border-gray-300 rounded shadow-md">
+            {suggestions.map((suggestion, index) => (
+              <li
+                key={index}
+                onClick={() => handleSuggestionClick(suggestion)}
+                className="p-2 cursor-pointer hover:bg-gray-200"
+              >
+                {suggestion.place_name}
+              </li>
+            ))}
+          </ul>
+        )}
+
         <input
           type="text"
           name="borough"
@@ -121,6 +176,7 @@ const AddMicForm = ({ onMicAdded }) => {
           className="w-full p-2 border border-gray-300 rounded"
           required
         />
+
         <button
           type="submit"
           className="mt-4 w-full bg-black text-white py-2 rounded hover:bg-gray-800 transition"
