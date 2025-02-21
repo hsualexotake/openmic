@@ -1,58 +1,111 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { FaHome, FaMicrophone, FaSignInAlt, FaUserPlus, FaSignOutAlt, FaPlusCircle, FaCog } from "react-icons/fa";
 
-const Navbar = ({ token, setToken }) => {
+const Navbar = ({ token, setToken, isOpen, setIsOpen }) => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
-    console.log("Logging out..."); // Debugging logout
-    localStorage.removeItem("token"); // Remove token from storage
-    setToken(null); // Update state to reflect logout
-    navigate("/login"); // Redirect to login page
+    localStorage.removeItem("token");
+    setToken(null);
+    navigate("/login");
   };
 
+  // Check if route is active
+  const isActive = (path) =>
+    location.pathname === path
+      ? "bg-gray-100 text-purple-600 font-semibold"
+      : "hover:bg-gray-100 text-gray-800";
+
   return (
-    <nav className="flex justify-between p-4 bg-gray-200 shadow-md">
-      <h1
-        className="text-xl font-bold cursor-pointer"
-        onClick={() => navigate("/")}
-      >
-        🎤 NYC Open Mics
-      </h1>
-      <div>
-        {token ? (
-          <>
+    <div
+      className={`fixed top-0 left-0 h-full bg-white text-gray-800 shadow-lg z-50 transition-all duration-300 ${
+        isOpen ? "w-64" : "w-20"
+      }`}
+    >
+      <div className="flex flex-col h-full p-4">
+        {/* Toggle Sidebar */}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="text-gray-600 p-2 rounded-lg hover:bg-gray-100 transition self-end"
+        >
+          {isOpen ? "✖️" : "☰"}
+        </button>
+
+        {/* Logo */}
+        {isOpen && (
+          <h1
+            className="text-2xl font-bold my-6 cursor-pointer text-center text-purple-600"
+            onClick={() => navigate("/")}
+          >
+            🎤 NYC Mics
+          </h1>
+        )}
+
+        {/* Navigation */}
+        <nav className="flex flex-col space-y-2 mt-6">
+          <button
+            onClick={() => navigate("/")}
+            className={`flex items-center gap-3 p-3 rounded-lg transition ${isActive("/")}`}
+          >
+            <FaHome /> {isOpen && "Home"}
+          </button>
+
+          <button
+            onClick={() => navigate("/mics")}
+            className={`flex items-center gap-3 p-3 rounded-lg transition ${isActive("/mics")}`}
+          >
+            <FaMicrophone /> {isOpen && "Open Mics"}
+          </button>
+
+          {token && (
             <button
               onClick={() => navigate("/add-mic")}
-              className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
+              className={`flex items-center gap-3 p-3 rounded-lg transition ${isActive("/add-mic")}`}
             >
-              Add Open Mic
+              <FaPlusCircle /> {isOpen && "Add Open Mic"}
             </button>
+          )}
+        </nav>
+
+        {/* Bottom Section */}
+        <div className="mt-auto space-y-2">
+          {token ? (
             <button
               onClick={handleLogout}
-              className="bg-red-500 text-white px-4 py-2 rounded"
+              className="flex items-center gap-3 p-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition w-full"
             >
-              Logout
+              <FaSignOutAlt /> {isOpen && "Logout"}
             </button>
-          </>
-        ) : (
-          <>
-            <button
-              onClick={() => navigate("/login")}
-              className="bg-green-500 text-white px-4 py-2 rounded mr-2"
-            >
-              Login
-            </button>
-            <button
-              onClick={() => navigate("/signup")}
-              className="bg-gray-500 text-white px-4 py-2 rounded"
-            >
-              Sign Up
-            </button>
-          </>
-        )}
+          ) : (
+            <>
+              <button
+                onClick={() => navigate("/login")}
+                className={`flex items-center gap-3 p-3 rounded-lg transition ${isActive("/login")}`}
+              >
+                <FaSignInAlt /> {isOpen && "Login"}
+              </button>
+
+              <button
+                onClick={() => navigate("/signup")}
+                className={`flex items-center gap-3 p-3 rounded-lg transition ${isActive("/signup")}`}
+              >
+                <FaUserPlus /> {isOpen && "Sign Up"}
+              </button>
+            </>
+          )}
+
+          {/* Settings */}
+          <button
+            onClick={() => navigate("/settings")}
+            className={`flex items-center gap-3 p-3 rounded-lg transition ${isActive("/settings")}`}
+          >
+            <FaCog /> {isOpen && "Settings"}
+          </button>
+        </div>
       </div>
-    </nav>
+    </div>
   );
 };
 
