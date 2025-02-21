@@ -18,27 +18,41 @@ const AddMicForm = ({ onMicAdded }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const response = await fetch("http://localhost:5001/api/mics", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("You must be logged in to add an open mic.");
+      return;
+    }
 
-    if (response.ok) {
-      alert("Open Mic Added!");
-      const newMic = await response.json();
-      onMicAdded(newMic); // Notify the parent component (OpenMics.js)
-      setFormData({
-        name: "",
-        location: "",
-        borough: "",
-        cost: "",
-        time: "",
-        date: "",
-        sign_up_method: "",
+    try {
+      const response = await fetch("http://localhost:5001/api/mics", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
       });
-    } else {
-      alert("Error adding Open Mic.");
+
+      const data = await response.json();
+      if (response.ok) {
+        alert("Open Mic Added!");
+        onMicAdded(data); // Notify parent
+        setFormData({
+          name: "",
+          location: "",
+          borough: "",
+          cost: "",
+          time: "",
+          date: "",
+          sign_up_method: "",
+        });
+      } else {
+        alert("Error adding Open Mic: " + data.error);
+      }
+    } catch (error) {
+      alert("Error adding Open Mic. Please try again.");
+      console.error("Add mic error:", error);
     }
   };
 
