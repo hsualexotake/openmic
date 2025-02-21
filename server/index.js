@@ -11,7 +11,11 @@ app.use(express.json());
 // Test API Route
 app.get("/", (req, res) => res.send("API is working!"));
 
-// Open Mic Routes
+// ✅ Add Authentication Routes
+const authRoutes = require("./routes/auth");
+app.use("/api/auth", authRoutes);
+
+// ✅ Open Mic Routes
 const micsRoutes = require("./routes/mics");
 app.use("/api/mics", micsRoutes);
 
